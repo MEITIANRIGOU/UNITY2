@@ -4,60 +4,40 @@ using UnityEngine;
 
 public class ZoneControl : MonoBehaviour
 {
-    List<ScoreComponent> PlayersInZone = new List<ScoreComponent>();
 
-    int zoneControlTeamID = -1;
-    public int zoneControlMembersCount;
-
-    public int scoreGetEachTick;
-
-    float timer = 0;
-    public float tickInSeconds;
     private void OnTriggerEnter(Collider other)
     {
-        timer = 0;
-
-        ScoreComponent Player = other.gameObject.GetComponent<ScoreComponent>();
-
-        if (TeamScoreManager.teamStatic.Exists(Team => Player.teamID == Team.teamID))
+        ScoreComponent player = other.GetComponent<ScoreComponent>();
+        Color bearColor = other.transform.GetChild(3).GetComponent<SkinnedMeshRenderer>().material.color;
+        Color color = GetComponent<SkinnedMeshRenderer>().material.color;
+        if (bearColor == color)
         {
-            TeamScoreManager.Team theTeam = TeamScoreManager.teamStatic.Find(Team => Player.teamID == Team.teamID);
-            if (!theTeam.members.Exists(ScoreComponent => ScoreComponent.playerName == Player.gameObject.name))
-            {
-                theTeam.members.Add(Player);
-            }
+            player.safe = true;
         }
         else
         {
-            TeamScoreManager.teamStatic.Add(new TeamScoreManager.Team());
-            TeamScoreManager.teamStatic[TeamScoreManager.teamStatic.Count - 1].teamID = Player.teamID;
-            TeamScoreManager.teamStatic[TeamScoreManager.teamStatic.Count - 1].members.Add(Player);
+            player.safe = false;
         }
-        PlayersInZone.Add(Player);
     }
     private void OnTriggerStay(Collider other)
     {
-        if (!PlayersInZone.Exists(ScoreComponent => ScoreComponent.teamID != PlayersInZone[0].teamID) && PlayersInZone.Count >= zoneControlMembersCount)
+        ScoreComponent player = other.GetComponent<ScoreComponent>();
+        Color bearColor = other.transform.GetChild(3).GetComponent<SkinnedMeshRenderer>().material.color;
+        Color color = GetComponent<SkinnedMeshRenderer>().material.color;
+        if (bearColor == color)
         {
-            zoneControlTeamID = PlayersInZone[0].teamID;
-
-            if (timer < tickInSeconds)
-            {
-                timer += Time.deltaTime;
-            }
-            else
-            {
-                timer = 0;
-
-                TeamScoreManager.teamStatic.Find(Team => Team.teamID == zoneControlTeamID).teamScore++;
-
-                Debug.Log("Team: " + zoneControlTeamID + "\nScore: " + TeamScoreManager.teamStatic.Find(Team => Team.teamID == zoneControlTeamID).teamScore);
-            }
+            player.safe = true;
+        }
+        else
+        {
+            player.safe = false;
         }
     }
     private void OnTriggerExit(Collider other)
     {
-        ScoreComponent Player = other.gameObject.GetComponent<ScoreComponent>();
-        PlayersInZone.Remove(Player);
+        ScoreComponent player = other.GetComponent<ScoreComponent>();
+        
+        player.safe = false;
+        
     }
 }

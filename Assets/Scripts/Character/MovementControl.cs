@@ -7,48 +7,38 @@ public class MovementControl : MonoBehaviour
     public float movementSpeed;
     public float cameraSpeed;
 
-    private Vector3 processedInput = new Vector3(0, 0, 0);
-    float mouseInputX;
-    float mouseInputY;
+    protected Vector3 processedInput = new Vector3(0, 0, 0);
+    protected float mouseInputX;
+    protected float mouseInputY;
+    protected float horizontalInput;
+    protected float verticalInput;
 
-    private bool canJump = false;
+    protected bool canJump = false;
 
-    private Rigidbody rb;
-    private Animator anim;
+    protected Rigidbody rb;
+    protected Animator anim;
 
-    void Awake()
+    protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void Update()
+    protected virtual void Update()
     {
-        var horizontalInput = Input.GetAxisRaw("Horizontal");//左右，左-1，右1
-        var verticalInput = Input.GetAxisRaw("Vertical");//前后
-
-        mouseInputX = Input.GetAxisRaw("Mouse X");
-        mouseInputY = Input.GetAxisRaw("Mouse Y");
-
-        if (canJump && Input.GetKeyDown(KeyCode.Space))
-        {
-            anim.SetTrigger("Jump");
-            anim.SetBool("Jumping", true);
-        }
-
         processedInput = (transform.forward * verticalInput + transform.right * horizontalInput);
 
         if (horizontalInput != 0 || verticalInput != 0)
         {
             anim.SetBool("Moving", true);
 
-            if (verticalInput == 1)
+            if (verticalInput > 0)
             {
                 anim.SetBool("Forward", true);
                 anim.SetBool("Backward", false);
             }
-            else if (verticalInput == -1)
+            else if (verticalInput < 0)
             {
                 anim.SetBool("Forward", false);
                 anim.SetBool("Backward", true);
@@ -59,12 +49,12 @@ public class MovementControl : MonoBehaviour
                 anim.SetBool("Backward", false);
             }
 
-            if (horizontalInput == 1)
+            if (horizontalInput > 0)
             {
                 anim.SetBool("Left", false);
                 anim.SetBool("Right", true);
             }
-            else if (horizontalInput == -1)
+            else if (horizontalInput < 0)
             {
                 anim.SetBool("Left", true);
                 anim.SetBool("Right", false);
@@ -81,7 +71,7 @@ public class MovementControl : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    protected void FixedUpdate()
     {
         rb.MovePosition(transform.position + (processedInput.normalized * movementSpeed * Time.deltaTime));
 
@@ -97,17 +87,26 @@ public class MovementControl : MonoBehaviour
             transform.GetChild(4).transform.localEulerAngles = new Vector3(60, 0, 0);
         }
     }
-    private void OnCollisionEnter(Collision collision)
+    protected void OnCollisionEnter(Collision collision)
     {
-        anim.SetBool("Jumping", false);
+        if (collision.gameObject.CompareTag("Terrain"))
+        {
+            anim.SetBool("Jumping", false);
+        }
     }
-    private void OnCollisionStay(Collision collision)
+    protected void OnCollisionStay(Collision collision)
     {
-        canJump = true;
+        if (collision.gameObject.CompareTag("Terrain"))
+        {
+            canJump = true;
+        }
     }
-    private void OnCollisionExit(Collision collision)
+    protected void OnCollisionExit(Collision collision)
     {
-        canJump = false;
+        if (collision.gameObject.CompareTag("Terrain"))
+        {
+            canJump = false;
+        }
     }
     public float CheckAngle(float Value)
     {
